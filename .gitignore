@@ -13,3 +13,9 @@ web-report/
 
 # macOS
 .DS_Store
+
+# Android
+android/build
+android/app/build
+android/local.properties
+android/.gradle
