@@ -14,6 +14,9 @@ web-report/
 # macOS
 .DS_Store
 
+# ide
+.idea
+
 # Android
 android/build
 android/app/build
@@ -21,5 +24,5 @@ android/local.properties
 android/.gradle
 
 # ios
-/ios/ReactNativeBrickBreaker.xcworkspace/xcuserdata/
-/ios/ReactNativeBrickBreaker.xcodeproj/project.xcworkspace/xcuserdata/
+/ios/ReactNativeBrickBreaker.xcworkspace/xcuserdata
+/ios/ReactNativeBrickBreaker.xcodeproj/project.xcworkspace/xcuserdata
