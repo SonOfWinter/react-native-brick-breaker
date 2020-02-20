@@ -19,3 +19,7 @@ android/build
 android/app/build
 android/local.properties
 android/.gradle
+
+# ios
+/ios/ReactNativeBrickBreaker.xcworkspace/xcuserdata/
+/ios/ReactNativeBrickBreaker.xcodeproj/project.xcworkspace/xcuserdata/
