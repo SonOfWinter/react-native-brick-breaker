@@ -6,6 +6,7 @@ import {
   StatusBar,
   TouchableOpacity
 } from "react-native";
+import { activateKeepAwake } from 'expo-keep-awake';
 import Matter from "matter-js";
 import {GameEngine} from "react-native-game-engine";
 import Constants from "./Constants";
@@ -135,6 +136,7 @@ export default class App extends Component {
 
   start = e => {
     console.log('start');
+    activateKeepAwake();
     gyroscope.subscribe(({x, y, z, timestamp}) => {
       //this.setState({gyroscopeY: y, gyroscopeX: x, gyroscopeZ: z})
 
