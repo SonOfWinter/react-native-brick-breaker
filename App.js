@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React, {Component} from "react";
 import {
   StyleSheet,
   Text,
@@ -7,26 +7,31 @@ import {
   TouchableOpacity
 } from "react-native";
 import Matter from "matter-js";
-import { GameEngine } from "react-native-game-engine";
+import {GameEngine} from "react-native-game-engine";
 import Constants from "./Constants";
 import Physics from "./Physics";
 import Racket from "./Racket";
 import Ball from "./Ball";
 import Wall from "./Wall";
 
+import {gyroscope} from "react-native-sensors";
+
 export default class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
       running: true,
-      start: false
+      start: false,
+      gyroscopeY: 0,
+      gyroscopeX: 0,
+      gyroscopeZ: 0
     };
     this.gameEngine = null;
     this.entities = this.setupWorld();
   }
 
   setupWorld = () => {
-    let engine = Matter.Engine.create({ enableSleeping: false });
+    let engine = Matter.Engine.create({enableSleeping: false});
     let world = engine.world;
     world.gravity.y = 0;
 
@@ -35,7 +40,7 @@ export default class App extends Component {
       Constants.RACKET_Y_POSITION,
       Constants.RACKET_WIDTH,
       Constants.RACKET_HEIGHT,
-      { isStatic: true }
+      {isStatic: true}
     );
 
     let ball = Matter.Bodies.circle(
@@ -49,7 +54,7 @@ export default class App extends Component {
         friction: 0, // perfect slide in a collision
         frictionAir: 0, // no air resistance
         frictionStatic: 0, // never stop moving
-        collisionFilter: { group: -1 }
+        collisionFilter: {group: -1}
       }
     );
 
@@ -59,7 +64,6 @@ export default class App extends Component {
       Constants.WALL_WIDTH,
       Constants.WALL_HEIGHT,
       {
-        restitution: 1,
         isStatic: true
       }
     );
@@ -70,7 +74,6 @@ export default class App extends Component {
       Constants.WALL_WIDTH,
       Constants.WALL_HEIGHT,
       {
-        restitution: 1,
         isStatic: true
       }
     );
@@ -81,7 +84,6 @@ export default class App extends Component {
       Constants.WALL_HEIGHT,
       Constants.WALL_WIDTH,
       {
-        restitution: 1,
         isStatic: true
       }
     );
@@ -89,7 +91,7 @@ export default class App extends Component {
     Matter.World.add(world, [racket, ball, wallLeft, wallRight, ceiling]);
 
     return {
-      physics: { engine: engine, world: world },
+      physics: {engine: engine, world: world},
       racket: {
         body: racket,
         size: [Constants.RACKET_WIDTH, Constants.RACKET_HEIGHT],
@@ -132,6 +134,30 @@ export default class App extends Component {
   };
 
   start = e => {
+    console.log('start');
+    gyroscope.subscribe(({x, y, z, timestamp}) => {
+      //this.setState({gyroscopeY: y, gyroscopeX: x, gyroscopeZ: z})
+
+      let newRacketX = this.entities.racket.body.position.x;
+      if (Math.abs(x) > Math.abs(y)) {
+        newRacketX = newRacketX + x;
+      } else {
+        newRacketX = newRacketX + y;
+      }
+
+      if (newRacketX < Constants.RACKET_MIN_X_POSITION) {
+        newRacketX = Constants.RACKET_MIN_X_POSITION;
+      }
+
+      if (newRacketX > Constants.RACKET_MAX_X_POSITION) {
+        newRacketX = Constants.RACKET_MAX_X_POSITION;
+      }
+
+      Matter.Body.setPosition(
+        this.entities.racket.body,
+        {x: newRacketX, y: this.entities.racket.body.position.y}
+      );
+    });
     this.setState({
       start: true
     });
