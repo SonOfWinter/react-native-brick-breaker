@@ -16,6 +16,7 @@ web-report/
 
 # ide
 .idea
+android/.idea
 
 # Android
 android/build
@@ -26,3 +27,5 @@ android/.gradle
 # ios
 /ios/ReactNativeBrickBreaker.xcworkspace/xcuserdata
 /ios/ReactNativeBrickBreaker.xcodeproj/project.xcworkspace/xcuserdata
+/ios/Pods/
+/ios/build/

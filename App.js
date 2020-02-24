@@ -4,7 +4,8 @@ import {
   Text,
   View,
   StatusBar,
-  TouchableOpacity
+  TouchableOpacity,
+  Image, Dimensions
 } from "react-native";
 import { activateKeepAwake } from 'expo-keep-awake';
 import Matter from "matter-js";
@@ -14,7 +15,7 @@ import Physics from "./Physics";
 import Racket from "./Racket";
 import Ball from "./Ball";
 import Wall from "./Wall";
-
+import heart from "./assets/heart.png";
 import {gyroscope} from "react-native-sensors";
 
 export default class App extends Component {
@@ -23,9 +24,7 @@ export default class App extends Component {
     this.state = {
       running: true,
       start: false,
-      gyroscopeY: 0,
-      gyroscopeX: 0,
-      gyroscopeZ: 0
+      lives: 3
     };
     this.gameEngine = null;
     this.entities = this.setupWorld();
@@ -199,6 +198,8 @@ export default class App extends Component {
         >
           <StatusBar hidden={true} />
         </GameEngine>
+        <Image source={heart} style={styles.heart}/>
+        <Text style={styles.livesText}>{this.state.lives}</Text>
         {!this.state.running && (
           <TouchableOpacity
             style={styles.fullScreenButton}
@@ -258,5 +259,19 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     flex: 1
+  },
+  heart: {
+    position: "absolute",
+    bottom: 5,
+    left: 20,
+    flex: 1
+  },
+  livesText:{
+    position: "absolute",
+    bottom: 4,
+    left: 50,
+    flex: 1,
+    fontSize: 20,
+    fontWeight: 'bold',
   }
 });
