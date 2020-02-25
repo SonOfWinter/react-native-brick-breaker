@@ -5,7 +5,7 @@ import {
   View,
   StatusBar,
   TouchableOpacity,
-  Image, Dimensions
+  Image
 } from "react-native";
 import { activateKeepAwake } from 'expo-keep-awake';
 import Matter from "matter-js";
@@ -22,9 +22,9 @@ export default class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      running: true,
-      start: false,
-      lives: 3
+      running: true, // game on / off
+      start: false, // ball thrown
+      lives: 3 // nb lives
     };
     this.gameEngine = null;
     this.entities = this.setupWorld();
@@ -57,6 +57,7 @@ export default class App extends Component {
         collisionFilter: {group: -1}
       }
     );
+    ball.label = 'ball';
 
     let wallLeft = Matter.Bodies.rectangle(
       Constants.WALL_WIDTH / 2,
@@ -88,7 +89,31 @@ export default class App extends Component {
       }
     );
 
-    Matter.World.add(world, [racket, ball, wallLeft, wallRight, ceiling]);
+    let floor = Matter.Bodies.rectangle(
+      Constants.RACKET_START_X_POSITION,
+      Constants.MAX_HEIGHT,
+      Constants.WALL_HEIGHT,
+      Constants.WALL_WIDTH,
+      {
+        isStatic: true
+      }
+    );
+    floor.label = 'floor';
+
+    Matter.World.add(world, [racket, ball, wallLeft, wallRight, ceiling, floor]);
+
+    Matter.Events.on(engine, 'collisionStart', (event) => {
+      var pairs = event.pairs;
+
+      let labels = [pairs[0].bodyA.label, pairs[0].bodyB.label];
+      if (labels.indexOf('ball') >= 0 && labels.indexOf('floor') >= 0) {
+        if (this.state.lives > 1) {
+          this.gameEngine.dispatch({type: "ball-lost"});
+        } else {
+          this.gameEngine.dispatch({type: "game-over"});
+        }
+      }
+    });
 
     return {
       physics: {engine: engine, world: world},
@@ -121,16 +146,40 @@ export default class App extends Component {
         size: [Constants.WALL_HEIGHT, Constants.WALL_WIDTH],
         color: "orange",
         renderer: Wall
+      },
+      floor: {
+        body: floor,
+        size: [Constants.WALL_HEIGHT, Constants.WALL_WIDTH],
+        color: "red",
+        renderer: Wall
       }
     };
   };
 
   onEvent = e => {
     if (e.type === "game-over") {
+      this.resetBall();
       this.setState({
-        running: false
+        running: false,
+        lives: 0
+      });
+    } else if (e.type === "ball-lost") {
+      let newLives = this.state.lives - 1;
+      this.resetBall();
+      this.setState({
+        start: false,
+        lives:newLives
       });
     }
+  };
+
+  resetBall = () => {
+    Matter.Body.setVelocity(this.entities.ball.body, {x: 0, y: 0});
+
+    Matter.Body.setPosition(
+      this.entities.ball.body,
+      {x: Constants.RACKET_START_X_POSITION, y: Constants.RACKET_Y_POSITION - 20}
+    );
   };
 
   start = e => {
@@ -138,7 +187,6 @@ export default class App extends Component {
     activateKeepAwake();
     gyroscope.subscribe(({x, y, z, timestamp}) => {
       //this.setState({gyroscopeY: y, gyroscopeX: x, gyroscopeZ: z})
-
       let newRacketX = this.entities.racket.body.position.x;
       if (Math.abs(x) > Math.abs(y)) {
         newRacketX = newRacketX + x;
@@ -172,14 +220,16 @@ export default class App extends Component {
 
     Matter.Body.setVelocity(this.entities.ball.body, {
       x: force * Math.cos(angle),
-      y: -force * Math.sin(angle)
+      y: force * Math.sin(angle)
     });
   };
 
   reset = () => {
-    this.gameEngine.swap(this.setupWorld());
+    //this.gameEngine.swap(this.setupWorld());
     this.setState({
-      running: true
+      running: true,
+      start: false,
+      lives: 3
     });
   };
 
@@ -205,7 +255,7 @@ export default class App extends Component {
             style={styles.fullScreenButton}
             onPress={this.reset}
           >
-            <View style={styles.fullScreen}>
+            <View style={styles.gameOverFullScreen}>
               <Text style={styles.gameOverText}>Game Over</Text>
             </View>
           </TouchableOpacity>
@@ -215,8 +265,8 @@ export default class App extends Component {
             style={styles.fullScreenButton}
             onPress={this.start}
           >
-            <View style={styles.fullScreen}>
-              <Text style={styles.gameOverText}>Start</Text>
+            <View style={styles.startFullScreen}>
+              <Text style={styles.startText}>Cliquez n'importe où pour lancer la balle</Text>
             </View>
           </TouchableOpacity>
         )}
@@ -241,7 +291,12 @@ const styles = StyleSheet.create({
     color: "white",
     fontSize: 48
   },
-  fullScreen: {
+  startText: {
+    color: "black",
+    fontSize: 30,
+    textAlign: 'center'
+  },
+  gameOverFullScreen: {
     position: "absolute",
     top: 0,
     bottom: 0,
@@ -249,6 +304,17 @@ const styles = StyleSheet.create({
     right: 0,
     backgroundColor: "black",
     opacity: 0.8,
+    justifyContent: "center",
+    alignItems: "center"
+  },
+  startFullScreen: {
+    position: "absolute",
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: "transparent",
+    opacity: 1,
     justifyContent: "center",
     alignItems: "center"
   },
